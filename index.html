@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio - Dark Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* Basic styling */
+        html {
+            scroll-behavior: smooth; /* Enable smooth scrolling for anchor links */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Dark background */
+            color: #e5e7eb; /* Light text */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            margin: 0; /* Remove default body margin */
+        }
+
+        /* Style for the three.js canvas */
+        #bg-canvas {
+            position: fixed; /* Fixed position to stay in background */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Place it behind other content */
+            display: block; /* Ensure it takes up space */
+        }
+
+        /* Style for content sections */
+        .content-section {
+            min-height: 80vh; /* Ensure sections take up significant height */
+            padding: 8rem 2rem; /* Generous padding */
+            position: relative; /* Needed for potential z-index stacking */
+            z-index: 1; /* Ensure content is above the canvas */
+            opacity: 0; /* Start hidden for fade-in */
+            transform: translateY(30px); /* Start slightly lower for fade-in */
+            transition: opacity 0.9s ease-out, transform 0.9s ease-out; /* Slightly slower, smoother transition */
+        }
+
+        /* Style for visible sections (added by JS) */
+        .content-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom scrollbar (optional, for aesthetics) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937; /* Darker track */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563; /* Lighter thumb */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        /* Ensure header/nav stays on top */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: rgba(17, 24, 39, 0.85); /* Slightly less transparent dark background */
+            backdrop-filter: blur(12px); /* Frosted glass effect */
+            -webkit-backdrop-filter: blur(12px); /* Safari support */
+        }
+
+        /* Add simple fade-in keyframes for elements */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Apply animation */
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards; /* Apply the animation */
+            opacity: 0; /* Start hidden */
+        }
+
+        /* Stagger delays (Tailwind doesn't have built-in stagger easily without JS/custom config) */
+        .animation-delay-100 { animation-delay: 0.1s; }
+        .animation-delay-200 { animation-delay: 0.2s; }
+        .animation-delay-300 { animation-delay: 0.3s; }
+        .animation-delay-400 { animation-delay: 0.4s; }
+        .animation-delay-500 { animation-delay: 0.5s; }
+        .animation-delay-600 { animation-delay: 0.6s; }
+
+        /* Project Card Staggering - applied when section becomes visible */
+        .projects-grid > div {
+             opacity: 0; /* Start hidden */
+             transform: translateY(20px); /* Start slightly lower */
+             transition: opacity 0.6s ease-out, transform 0.6s ease-out; /* Transition for fade-in */
+        }
+        .projects-grid.visible > div:nth-child(1) { transition-delay: 0.1s; }
+        .projects-grid.visible > div:nth-child(2) { transition-delay: 0.2s; }
+        .projects-grid.visible > div:nth-child(3) { transition-delay: 0.3s; }
+        /* Add more nth-child rules if you have more projects */
+
+        .projects-grid.visible > div {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Social Links Styling */
+        .social-links a {
+            color: #9ca3af; /* Gray-400 */
+            transition: color 0.3s ease;
+        }
+        .social-links a:hover {
+            color: #6366f1; /* Indigo-500 */
+        }
+
+        /* Education Entry Styling */
+        .education-entry {
+            background-color: #1f2937; /* Darker background for entries */
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem; /* Space between entries */
+            border-left: 4px solid #6366f1; /* Accent border */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            opacity: 0; /* Start hidden for animation */
+            transform: translateY(20px); /* Start slightly lower */
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out; /* Animation */
+        }
+
+         /* Education Entry Animation Delay (applied when section is visible) */
+        #education.visible .education-entry:nth-child(1) { transition-delay: 0.1s; }
+        #education.visible .education-entry:nth-child(2) { transition-delay: 0.2s; }
+        /* Add more nth-child rules if you have more education entries */
+
+        #education.visible .education-entry {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+        /* Download Resume Section Styling */
+        .download-resume-section {
+            margin-top: 3rem; /* Space above the section */
+            padding: 2rem;
+            background-color: #1f2937; /* Darker background */
+            border-radius: 8px;
+            border: 1px solid #4b5563; /* Subtle border */
+            display: inline-block; /* Shrink to content width */
+            text-align: center;
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* More prominent shadow */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .download-resume-section:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .download-resume-section a {
+             background-color: #6366f1; /* Indigo-500 */
+             color: white;
+             font-weight: bold;
+             padding: 0.75rem 2rem;
+             border-radius: 0.5rem;
+             transition: background-color 0.3s ease, transform 0.3s ease;
+             display: inline-block; /* Ensure padding works */
+        }
+
+        .download-resume-section a:hover {
+            background-color: #4f46e5; /* Indigo-600 */
+            transform: scale(1.05); /* Slight scale on hover */
+        }
+
+
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <header class="shadow-md">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-extrabold text-white tracking-tight">MyPortfolio</div>
+            <div class="space-x-6">
+                <a href="#home" class="hover:text-indigo-300 transition duration-300 transform hover:scale-105 inline-block">Home</a>
+                <a href="#about" class="hover:text-indigo-300 transition duration-300 transform hover:scale-105 inline-block">About</a>
+                <a href="#education" class="hover:text-indigo-300 transition duration-300 transform hover:scale-105 inline-block">Education</a>
+                <a href="#projects" class="hover:text-indigo-300 transition duration-300 transform hover:scale-105 inline-block">Projects</a>
+                <a href="#contact" class="hover:text-indigo-300 transition duration-300 transform hover:scale-105 inline-block">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="content-section flex flex-col items-center justify-center text-center min-h-screen">
+             <h1 class="text-5xl md:text-7xl font-extrabold mb-4 animate-fade-in-up">Welcome!</h1>
+            <p class="text-xl md:text-2xl text-gray-400 mb-8 animate-fade-in-up animation-delay-200">I create interactive web experiences that look great and feel smooth.</p>
+            <p class="text-xl md:text-2xl text-gray-400 mb-8 animate-fade-in-up animation-delay-200">Scroll around and explore my work — every line of code comes with purpose and passion..</p>
+             <a href="#projects" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-110 animate-fade-in-up animation-delay-400">
+                 View My Work
+             </a>
+        </section>
+
+        <section id="about" class="content-section container mx-auto">
+             <h2 class="text-4xl font-bold text-center mb-12">About Me</h2>
+            <div class="flex flex-col md:flex-row items-center gap-12">
+                <div class="md:w-1/2 text-lg leading-relaxed">
+                    <p class="mb-4">
+                        Hey there! I’m Shristi Sharma , a curious and driven Computer Science student who’s diving deep into the world of Artificial Intelligence and Machine Learning. I'm learning every day — building, experimenting, and slowly connecting the dots between theory and real-world applications.
+                    </p>
+                    <p class="mb-4">
+                        I’ve also spent time exploring web development, picking up skills in HTML, CSS, JavaScript, and more. I enjoy creating clean, functional, and user-friendly websites — it’s fun seeing ideas turn into something real on the screen.
+                    </p>
+                    <p>
+                        Right now, I'm in that exciting phase where I'm soaking up knowledge, trying new things, and constantly challenging myself to grow as a developer.</p>
+
+                    <p>Thanks for stopping by — let’s build the future, one step at a time.
+                    </p>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                     <div class="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                         <span class="text-gray-300 text-xl"><img src="shristipic.jpg" alt="image" style="width: 300px; height: 300px; border-radius: 50%; object-fit: cover;"></span>
+                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="education" class="content-section container mx-auto">
+             <h2 class="text-4xl font-bold text-center mb-12">Education</h2>
+            <div class="max-w-3xl mx-auto text-lg leading-relaxed">
+                <div class="education-entry">
+                    <h3 class="text-2xl font-semibold text-indigo-300">Bachelor of Science in Computer Science with Artificial Intelligence</h3>
+                    <p class="text-gray-400">Poornima College Of Engineering, jaipur, Rajasthan</p>
+                    <p class="text-gray-400">Graduation Date: May 2027</p>
+                    <ul class="list-disc list-inside mt-2 text-gray-300">
+                        
+                    </ul>
+                </div>
+                <div class="education-entry">
+                    <h3 class="text-2xl font-semibold text-indigo-300">Senior Secondary Education </h3>
+                    <p class="text-gray-400">Brilliant Public Sr. Sec. School, Aligarh, Uttar pradesh</p>
+                </div>
+                <div class="education-entry">
+                    <h3 class="text-2xl font-semibold text-indigo-300">Secondary Education </h3>
+                    <p class="text-gray-400">Brilliant Public Sr. Sec. School, Aligarh, Uttar pradesh</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="content-section container mx-auto">
+             <h2 class="text-4xl font-bold text-center mb-12">My Projects</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 projects-grid">
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition duration-300">
+                    <img src="https://placehold.co/600x400/374151/e5e7eb?text=Project+1+Screenshot" alt="Project 1 Screenshot" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/1f2937/9ca3af?text=Image+Not+Found'">
+                    <div class="p-6">
+                         <h3 class="text-2xl font-bold mb-2">Project Title One</h3>
+                        <p class="text-gray-400 mb-4">A brief description of the project, highlighting key technologies or features.</p>
+                        <a href="#" class="text-indigo-400 hover:text-indigo-300 font-semibold">View Project &rarr;</a>
+                    </div>
+                </div>
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition duration-300">
+                    <img src="https://placehold.co/600x400/374151/e5e7eb?text=Project+2+Screenshot" alt="Project 2 Screenshot" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/1f2937/9ca3af?text=Image+Not+Found'">
+                    <div class="p-6">
+                         <h3 class="text-2xl font-bold mb-2">Project Title Two</h3>
+                        <p class="text-gray-400 mb-4">Another cool project involving interactive elements and perhaps some backend.</p>
+                        <a href="#" class="text-indigo-400 hover:text-indigo-300 font-semibold">View Project &rarr;</a>
+                    </div>
+                </div>
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition duration-300">
+                    <img src="https://placehold.co/600x400/374151/e5e7eb?text=Project+3+Screenshot" alt="Project 3 Screenshot" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/1f2937/9ca3af?text=Image+Not+Found'">
+                    <div class="p-6">
+                         <h3 class="text-2xl font-bold mb-2">Project Title Three</h3>
+                        <p class="text-gray-400 mb-4">This one might feature some interesting `three.js` work or data visualization.</p>
+                        <a href="#" class="text-indigo-400 hover:text-indigo-300 font-semibold">View Project &rarr;</a>
+                    </div>
+                </div>
+                 </div>
+        </section>
+
+        <section id="contact" class="content-section container mx-auto text-center">
+             <h2 class="text-4xl font-bold mb-8">Get In Touch</h2>
+            <p class="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
+                I'm always open to discussing new projects, creative ideas, or opportunities to be part of your visions. Feel free to reach out!
+            </p>
+            <a href="shristishar1023@gmail.com" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-110 mb-6">
+                Email Me
+            </a>
+
+            <div class="social-links flex justify-center space-x-6 mb-8 text-3xl">
+                <a href="https://www.linkedin.com/in/shristi-sharma-b9a0a0291" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/shristisharmaa" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                <a href="https://instagram.com/shristiee_2906" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                </div>
+
+            <div class="download-resume-section mx-auto">
+                 <p class="text-lg text-gray-300 mb-4">Want to see more? Download my full resume!</p>
+                <a href="/path/to/your/resume.pdf" download>
+                    <i class="fas fa-download mr-2"></i> Download Resume
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-8 text-center text-gray-500">
+        <p>&copy; 2025 [Your Name]. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // --- three.js Particle Background ---
+
+        // Get the canvas element
+        const canvas = document.getElementById('bg-canvas');
+        let scene, camera, renderer, particles, particleMaterial;
+        let particleCount = 5000; // Number of particles
+        let mouseX = 0, mouseY = 0; // Mouse position variables
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
+
+
+        // Adjust particle count based on screen size for performance
+        if (window.innerWidth < 768) {
+            particleCount = 1500;
+        } else if (window.innerWidth < 1024) {
+            particleCount = 3000;
+        }
+
+        function initThreeJS() {
+            // Scene setup
+            scene = new THREE.Scene();
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            // Slightly adjusted initial Z position based on particle spread
+            camera.position.z = 40;
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true }); // Enable antialiasing
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimize for high DPI displays
+
+            // Particle Geometry
+            const particlesGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3); // x, y, z for each particle
+            const colors = new Float32Array(particleCount * 3); // r, g, b for each particle
+
+             // Define some base colors for particles
+            const baseColors = [
+                new THREE.Color(0x6366f1), // indigo-500
+                new THREE.Color(0x8b5cf6), // purple-500
+                new THREE.Color(0xec4899), // pink-500
+                new THREE.Color(0xffffff)  // white
+            ];
+
+            for (let i = 0; i < particleCount; i++) {
+                const i3 = i * 3;
+                // Distribute particles within a sphere for a potentially more natural look
+                const radius = 50;
+                const phi = Math.acos(-1 + (2 * Math.random()));
+                const theta = Math.sqrt(12 * Math.PI) * Math.random(); // More even distribution
+
+                positions[i3] = radius * Math.sin(phi) * Math.cos(theta) * (Math.random() * 0.5 + 0.5); // Add randomness to radius
+                positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta) * (Math.random() * 0.5 + 0.5);
+                positions[i3 + 2] = radius * Math.cos(phi) * (Math.random() * 0.5 + 0.5);
+
+
+                // Assign a random color from the palette
+                const color = baseColors[Math.floor(Math.random() * baseColors.length)];
+                colors[i3] = color.r;
+                colors[i3 + 1] = color.g;
+                colors[i3 + 2] = color.b;
+            }
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3)); // Add color attribute
+
+            // Particle Material
+            particleMaterial = new THREE.PointsMaterial({
+                // color: 0xaaaaaa, // Color set by vertex colors now
+                vertexColors: true, // Use colors defined in geometry attribute
+                size: 0.18,        // Slightly larger particles
+                sizeAttenuation: true, // Make particles smaller further away
+                transparent: true,
+                opacity: 0.7,      // Slightly more opaque
+                blending: THREE.AdditiveBlending, // Nice glow effect
+                depthWrite: false // Prevents particles obscuring each other weirdly
+            });
+
+            // Create Points object
+            particles = new THREE.Points(particlesGeometry, particleMaterial);
+            scene.add(particles);
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+            // Handle mouse movement
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+            // Handle touch movement for mobile parallax
+            document.addEventListener('touchmove', onDocumentTouchMove, false);
+
+
+            // Start animation loop
+            // Ensure animate is called after window loads
+            // animate(); // This will be called in window.onload
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate); // Loop the animation
+
+            const elapsedTime = Date.now() * 0.00005; // Slower time factor for subtler movement
+
+            // Rotate the entire particle system slowly
+            particles.rotation.y = elapsedTime * 0.2;
+            particles.rotation.x = elapsedTime * 0.1;
+
+
+            // Make camera subtly react to mouse/touch movement
+            // Smoother interpolation factor
+            const parallaxFactor = 0.02;
+            camera.position.x += (mouseX * 5 - camera.position.x) * parallaxFactor; // Increased mouseX multiplier for more effect
+            camera.position.y += (-mouseY * 5 - camera.position.y) * parallaxFactor; // Increased mouseY multiplier for more effect
+
+            // Keep camera looking towards the center of the particle system's rotation
+            camera.lookAt(scene.position);
+
+
+            // Render the scene
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Re-apply pixel ratio
+        }
+
+         // Handle mouse movement - normalize coordinates (-0.5 to 0.5 range approx)
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX - windowHalfX) / windowHalfX; // Normalize x
+            mouseY = (event.clientY - windowHalfY) / windowHalfY; // Normalize y
+        }
+
+        // Handle touch movement - use the first touch point
+        function onDocumentTouchMove(event) {
+            if (event.touches.length === 1) {
+                event.preventDefault(); // Prevent default scroll behavior
+                 mouseX = (event.touches[0].pageX - windowHalfX) / windowHalfX; // Normalize x
+                 mouseY = (event.touches[0].pageY - windowHalfY) / windowHalfY; // Normalize y
+            }
+        }
+
+
+        // --- Scroll Fade-in Effect ---
+        const sections = document.querySelectorAll('.content-section');
+        const projectGrid = document.querySelector('.projects-grid'); // Target project grid specifically
+        const educationSection = document.querySelector('#education'); // Target education section
+
+        const observerOptions = {
+            root: null, // relative to the viewport
+            rootMargin: '0px',
+            threshold: 0.15 // Trigger when 15% of the section is visible (adjust as needed)
+        };
+
+        const observerCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // If the intersecting element is the project grid, add visible class for staggering
+                    if (entry.target.classList.contains('projects-grid')) {
+                         entry.target.classList.add('visible');
+                    }
+                     // Optional: Stop observing once it's visible to save resources
+                     // observer.unobserve(entry.target);
+                } else {
+                    // Optional: Remove 'visible' class if you want fade-out on scroll up
+                    // entry.target.classList.remove('visible');
+                    // if (entry.target.classList.contains('projects-grid')) {
+                    //     entry.target.classList.remove('visible');
+                    // }
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+        // Observe general content sections
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+        // Observe the project grid separately if needed for specific timing/threshold
+        if(projectGrid) {
+             observer.observe(projectGrid);
+        }
+        // Observe the education section separately if needed for specific timing/threshold
+         if(educationSection) {
+              observer.observe(educationSection);
+         }
+
+
+        // --- Initialize ---
+        // Wait for the window to load completely before starting three.js and initial animations
+        window.onload = function () {
+            initThreeJS(); // Initialize Three.js background
+            animate(); // Start the Three.js animation loop
+
+            // Trigger fade-in for the first section immediately if it's in view
+            const firstSection = document.querySelector('#home.content-section');
+            if(firstSection) {
+                 // Use a small timeout to ensure styles are applied before adding class
+                 setTimeout(() => {
+                    firstSection.classList.add('visible');
+                 }, 100); // 100ms delay
+            }
+        }
+
+    </script>
+
+</body>
+</html>
