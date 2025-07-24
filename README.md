@@ -1,3 +1,3 @@
 # Portfolio
 
-https://portfolio-zcxb.vercel.app/#projects
+[https://shristiportfolio.vercel.app/#home](https://shristiportfolio.vercel.app/)
