@@ -103,21 +103,37 @@
         .animation-delay-500 { animation-delay: 0.5s; }
         .animation-delay-600 { animation-delay: 0.6s; }
 
-        /* Project Card Staggering - applied when section becomes visible */
-        .projects-grid > div {
-             opacity: 0; /* Start hidden */
-             transform: translateY(20px); /* Start slightly lower */
-             transition: opacity 0.6s ease-out, transform 0.6s ease-out; /* Transition for fade-in */
+        /* New Keyframe for project card animation */
+        @keyframes projectCardEnter {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
-        .projects-grid.visible > div:nth-child(1) { transition-delay: 0.1s; }
-        .projects-grid.visible > div:nth-child(2) { transition-delay: 0.2s; }
-        .projects-grid.visible > div:nth-child(3) { transition-delay: 0.3s; }
-        /* Add more nth-child rules if you have more projects */
+
+        /* Project Card Animation - applied when section becomes visible */
+        .projects-grid > div {
+            opacity: 0; /* Start hidden */
+            animation-fill-mode: forwards; /* Stay at 100% keyframe post-animation */
+        }
 
         .projects-grid.visible > div {
-            opacity: 1;
-            transform: translateY(0);
+            animation-name: projectCardEnter;
+            animation-duration: 0.6s;
+            animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94); /* A nice ease-out curve */
         }
+
+        /* Staggering the animation start time */
+        .projects-grid.visible > div:nth-child(1) { animation-delay: 0.1s; }
+        .projects-grid.visible > div:nth-child(2) { animation-delay: 0.2s; }
+        .projects-grid.visible > div:nth-child(3) { animation-delay: 0.3s; }
+        .projects-grid.visible > div:nth-child(4) { animation-delay: 0.4s; }
+        /* Add more nth-child rules if you have more projects */
+
 
         /* Social Links Styling */
         .social-links a {
@@ -144,6 +160,7 @@
          /* Education Entry Animation Delay (applied when section is visible) */
         #education.visible .education-entry:nth-child(1) { transition-delay: 0.1s; }
         #education.visible .education-entry:nth-child(2) { transition-delay: 0.2s; }
+        #education.visible .education-entry:nth-child(3) { transition-delay: 0.3s; }
         /* Add more nth-child rules if you have more education entries */
 
         #education.visible .education-entry {
@@ -211,7 +228,7 @@
             <p class="text-xl md:text-2xl text-gray-400 mb-8 animate-fade-in-up animation-delay-200">I create interactive web experiences that look great and feel smooth.</p>
             <p class="text-xl md:text-2xl text-gray-400 mb-8 animate-fade-in-up animation-delay-200">Scroll around and explore my work — every line of code comes with purpose and passion..</p>
              <a href="#projects" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-110 animate-fade-in-up animation-delay-400">
-                 View My Work
+                  View My Work
              </a>
         </section>
 
@@ -264,7 +281,8 @@
         <section id="projects" class="content-section container mx-auto">
              <h2 class="text-4xl font-bold text-center mb-12">My Projects</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 projects-grid">
-                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition duration-300">
+                <!-- Project Card 1 -->
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/30">
                     <img src="https://placehold.co/600x400/374151/e5e7eb?text=Project+1+Screenshot" alt="Project 1 Screenshot" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/1f2937/9ca3af?text=Image+Not+Found'">
                     <div class="p-6">
                          <h3 class="text-2xl font-bold mb-2">Project Title One</h3>
@@ -272,7 +290,8 @@
                         <a href="#" class="text-indigo-400 hover:text-indigo-300 font-semibold">View Project &rarr;</a>
                     </div>
                 </div>
-                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition duration-300">
+                <!-- Project Card 2 -->
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/30">
                     <img src="https://placehold.co/600x400/374151/e5e7eb?text=Project+2+Screenshot" alt="Project 2 Screenshot" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/1f2937/9ca3af?text=Image+Not+Found'">
                     <div class="p-6">
                          <h3 class="text-2xl font-bold mb-2">Project Title Two</h3>
@@ -280,7 +299,8 @@
                         <a href="#" class="text-indigo-400 hover:text-indigo-300 font-semibold">View Project &rarr;</a>
                     </div>
                 </div>
-                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition duration-300">
+                <!-- Project Card 3 -->
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/30">
                     <img src="https://placehold.co/600x400/374151/e5e7eb?text=Project+3+Screenshot" alt="Project 3 Screenshot" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/1f2937/9ca3af?text=Image+Not+Found'">
                     <div class="p-6">
                          <h3 class="text-2xl font-bold mb-2">Project Title Three</h3>
@@ -288,7 +308,16 @@
                         <a href="#" class="text-indigo-400 hover:text-indigo-300 font-semibold">View Project &rarr;</a>
                     </div>
                 </div>
-                 </div>
+                <!-- Project Card 4 -->
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/30">
+                    <img src="https://placehold.co/600x400/374151/e5e7eb?text=Project+4+Screenshot" alt="Project 4 Screenshot" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/1f2937/9ca3af?text=Image+Not+Found'">
+                    <div class="p-6">
+                         <h3 class="text-2xl font-bold mb-2">Project Title Four</h3>
+                        <p class="text-gray-400 mb-4">A fourth project showcasing another set of skills and creativity.</p>
+                        <a href="#" class="text-indigo-400 hover:text-indigo-300 font-semibold">View Project &rarr;</a>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="contact" class="content-section container mx-auto text-center">
@@ -296,7 +325,7 @@
             <p class="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
                 I'm always open to discussing new projects, creative ideas, or opportunities to be part of your visions. Feel free to reach out!
             </p>
-            <a href="shristishar1023@gmail.com" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-110 mb-6">
+            <a href="mailto:shristishar1023@gmail.com" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-110 mb-6">
                 Email Me
             </a>
 
@@ -316,7 +345,7 @@
     </main>
 
     <footer class="py-8 text-center text-gray-500">
-        <p>&copy; 2025 [Your Name]. All rights reserved.</p>
+        <p>&copy; 2025 Shristi Sharma. All rights reserved.</p>
     </footer>
 
     <script>
@@ -390,10 +419,10 @@
             particleMaterial = new THREE.PointsMaterial({
                 // color: 0xaaaaaa, // Color set by vertex colors now
                 vertexColors: true, // Use colors defined in geometry attribute
-                size: 0.18,        // Slightly larger particles
+                size: 0.18,       // Slightly larger particles
                 sizeAttenuation: true, // Make particles smaller further away
                 transparent: true,
-                opacity: 0.7,      // Slightly more opaque
+                opacity: 0.7,     // Slightly more opaque
                 blending: THREE.AdditiveBlending, // Nice glow effect
                 depthWrite: false // Prevents particles obscuring each other weirdly
             });
@@ -507,7 +536,7 @@
         }
         // Observe the education section separately if needed for specific timing/threshold
          if(educationSection) {
-              observer.observe(educationSection);
+               observer.observe(educationSection);
          }
 
 
@@ -522,7 +551,7 @@
             if(firstSection) {
                  // Use a small timeout to ensure styles are applied before adding class
                  setTimeout(() => {
-                    firstSection.classList.add('visible');
+                     firstSection.classList.add('visible');
                  }, 100); // 100ms delay
             }
         }
